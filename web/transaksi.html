@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transaksi - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia</span>
+    </div>
+    <nav>
+      <a href="produk.html" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="#" class="active" id="navLinkTransaksi"><i class="fas fa-cash-register"></i> Transaksi</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan" style="display:none;"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk" class="admin-only-nav" style="display:none;"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+    <div class="cart-icon" onclick="toggleCart()">
+      <i class="fas fa-shopping-cart"></i>
+      <span id="cart-count">0</span>
+    </div>
+    <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <div class="payment-modal" id="payment-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+      <h3>Pembayaran Tunai</h3>
+      
+      <div class="payment-details" id="cash-details" style="display: block; border-top: none; margin-top: 1rem; padding-top: 0;">
+        <div class="input-group">
+          <label>Total Pembayaran:</label>
+          <span id="cash-total">Rp0</span>
+        </div>
+        <div class="input-group">
+          <label for="cash-amount">Uang Diterima:</label>
+          <input type="number" id="cash-amount" placeholder="Masukkan jumlah uang">
+        </div>
+        <div class="input-group">
+          <label>Kembalian:</label>
+          <span id="cash-change">Rp0</span>
+        </div>
+        <button class="confirm-payment" onclick="confirmCashPayment()">Konfirmasi Pembayaran</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="transaction-page">
+    <div class="header-section">
+      <h2>Transaksi Toko Amalia</h2>
+      <button onclick="window.location.href='dashboard.html'" class="back-button">
+        <i class="fas fa-arrow-left"></i> Kembali
+      </button>
+    </div>
+
+    <div class="transaction-container">
+      <div class="filter-section">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input type="text" id="search-product" placeholder="Cari produk...">
+        </div>
+        
+        <div class="category-filter">
+          <h3>Kategori</h3>
+          <div class="category-buttons">
+            <button onclick="filterByCategory('bahan-pokok')">Bahan Pokok</button>
+            <button onclick="filterByCategory('makanan')">Makanan</button>
+            <button onclick="filterByCategory('minuman')">Minuman</button>
+            <button onclick="filterByCategory('all')">Semua</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="products-grid" id="products-grid">
+        </div>
+
+      <div class="cart-section">
+        <h3>Keranjang Belanja</h3>
+        <div class="cart-items" id="cart-items">
+          <div class="empty-cart">Keranjang kosong</div>
+        </div>
+        <div class="cart-total">
+          <span>Total:</span>
+          <span id="total-amount">Rp0</span>
+        </div>
+        <button class="checkout-btn" onclick="processPayment()">
+          <i class="fas fa-money-bill-wave"></i> Bayar Tunai
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const produkDatabaseDefault = {
+      'bahan-pokok': [
+        { id: "bp001", nama: "99 20kg", harga: 350000, stok: 10, gambar: "99.png" },
+        { id: "bp002", nama: "Mi-Won 250gr", harga: 8000, stok: 24, gambar: "miwon.png" },
+        { id: "bp003", nama: "Garam 500gr", harga: 8000, stok: 48, gambar: "garam.png" },
+        { id: "bp004", nama: "Kopi senang 250gr", harga: 22000, stok: 50, gambar: "kopi.png" },
+        { id: "bp005", nama: "Kunci Mas 1L", harga: 20000, stok: 12, gambar: "kc.png" },
+        { id: "bp006", nama: "Gula pasir 1kg", harga: 20000, stok: 50, gambar: "gula.png" },
+        { id: "bp007", nama: "Garam 250gr", harga: 5000, stok: 25, gambar: "garam.png" },
+        { id: "bp008", nama: "Mi-Won 500gr", harga: 15000, stok: 10, gambar: "miwon.png" },
+        { id: "bp009", nama: "Kunci Mas 2L", harga: 40000, stok: 12, gambar: "kc.png" },
+        { id: "bp010", nama: "Merpati 17kg", harga: 275000, stok: 10, gambar: "merpati.png" },
+        { id: "bp011", nama: "Karung Kuning 10kg", harga: 150000, stok: 10, gambar: "karungkuning.png" },
+        { id: "bp012", nama: "Padi Udang 20kg", harga: 355000, stok: 10, gambar: "padiudang.png" }
+      ],
+      'makanan': [
+        { id: "ma013", nama: "Hatari Cocopuff", harga: 8000, stok: 11, gambar: "hatari.png" },
+        { id: "ma014", nama: "Malkits Crackers", harga: 8000, stok: 16, gambar: "malkits.png" },
+        { id: "ma015", nama: "Saltcheese", harga: 12000, stok: 24, gambar: "salt.png" },
+        { id: "ma016", nama: "Sari Gandum", harga: 12000, stok: 24, gambar: "sarigandum.png" },
+        { id: "ma017", nama: "Kusuka", harga: 8000, stok: 32, gambar: "kusuka.png" },
+        { id: "ma018", nama: "Fullo Coklat", harga: 15000, stok: 10, gambar: "Fullo.png" },
+        { id: "ma019", nama: "Kopiko", harga: 10000, stok: 24, gambar: "kopiko.png" },
+        { id: "ma020", nama: "Hatari peanut", harga: 8000, stok: 32, gambar: "peanut.png" },
+        { id: "ma021", nama: "Superco", harga: 10000, stok: 24, gambar: "superco.png" },
+        { id: "ma022", nama: "Malkits Coklat", harga: 8000, stok: 18, gambar: "malkits2.png" }
+      ],
+      'minuman': [
+        { id: "mi023", nama: "Aqua 600ml", harga: 5000, stok: 13, gambar: "aqua.png" },
+        { id: "mi024", nama: "Teh Pucuk 350ml", harga: 5000, stok: 35, gambar: "tehpucuk.png" },
+        { id: "mi025", nama: "Mizone 500ml", harga: 8000, stok: 20, gambar: "mizone.png" },
+        { id: "mi026", nama: "Fanta 250ml", harga: 7000, stok: 20, gambar: "fanta.png" },
+        { id: "mi027", nama: "Coca cola 250ml", harga: 7000, stok: 20, gambar: "cocacola.png" },
+        { id: "mi028", nama: "Sprite", harga: 7000, stok: 20, gambar: "sprite.png" },
+        { id: "mi029", nama: "Nestle 600ml", harga: 5000, stok: 20, gambar: "nestle.png" },
+        { id: "mi030", nama: "Aqua 1500ml", harga: 10000, stok: 20, gambar: "aqua.png" },
+        { id: "mi031", nama: "Nestle 1500ml", harga: 10000, stok: 20, gambar: "nestle.png" }
+      ]
+    };
+    
+    let allProductsMasterList = [];
+    Object.keys(produkDatabaseDefault).forEach(kategori => {
+        produkDatabaseDefault[kategori].forEach(produk => {
+            allProductsMasterList.push({...produk, kategori}); 
+        });
+    });
+
+    let cart = [];
+    let currentCategory = 'all';
+    let currentlyDisplayedProducts = []; 
+
+    function getCombinedProducts() {
+        let combinedProducts = JSON.parse(JSON.stringify(allProductsMasterList)); 
+        const customProducts = JSON.parse(localStorage.getItem('customProducts')) || [];
+
+        customProducts.forEach(customProduct => {
+            const index = combinedProducts.findIndex(p => p.id === customProduct.id);
+            if (index !== -1) {
+                // Jika produk ada di daftar default, timpa dengan versi kustom
+                // Pastikan semua properti dari produk kustom (termasuk 'kategori') menimpa yang default jika ada
+                combinedProducts[index] = {...combinedProducts[index], ...customProduct};
+            } else {
+                // Jika produk tidak ada di daftar default (produk benar-benar baru), tambahkan
+                if(customProduct.kategori) { 
+                     combinedProducts.push(customProduct);
+                }
+            }
+        });
+        // Filter produk yang stoknya 0 atau ditandai isDeleted (jika ada dari halaman produk)
+        return combinedProducts.filter(p => p.stok > 0 && !p.isDeleted);
+    }
+
+    function setNavigationForRole(role) {
+        const navLinkDataPenjualan = document.getElementById('navLinkDataPenjualan');
+        const navLinkTambahProduk = document.getElementById('navLinkTambahProduk');
+
+        if(navLinkDataPenjualan) navLinkDataPenjualan.style.display = 'none';
+        if(navLinkTambahProduk) navLinkTambahProduk.style.display = 'none';
+
+        if (role === 'admin') {
+            if (navLinkDataPenjualan) navLinkDataPenjualan.style.display = 'flex';
+            if (navLinkTambahProduk) navLinkTambahProduk.style.display = 'flex';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const role = localStorage.getItem('role');
+
+      if (!isLoggedIn || isLoggedIn !== "true") {
+        window.location.href = 'index.html';
+        return;
+      }
+      setNavigationForRole(role);
+      
+      filterByCategory('all'); 
+      updateCartCount();
+      
+      document.getElementById('search-product').addEventListener('input', searchProducts);
+      document.getElementById('cash-amount').addEventListener('input', calculateChange);
+    });
+
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = 'index.html';
+    }
+
+    function loadProductsToDisplay() {
+      const productsGrid = document.getElementById('products-grid');
+      productsGrid.innerHTML = '';
+
+      if (currentlyDisplayedProducts.length === 0) {
+        productsGrid.innerHTML = '<div class="no-products">Tidak ada produk yang ditemukan atau stok habis.</div>';
+        return;
+      }
+
+      currentlyDisplayedProducts.forEach(product => {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card';
+        productCard.innerHTML = `
+          <img src="${product.gambar || 'placeholder.png'}" alt="${product.nama}" onerror="this.onerror=null;this.src='placeholder.png';">
+          <h3>${product.nama}</h3>
+          <div class="product-info">
+            <span>Rp${product.harga.toLocaleString('id-ID')}</span>
+            <span>Stok: ${product.stok}</span>
+          </div>
+          <button class="add-to-cart" onclick="addToCart('${product.id}')" ${product.stok <= 0 ? 'disabled title="Stok habis"' : ''}>
+            <i class="fas fa-cart-plus"></i> ${product.stok <= 0 ? 'Stok Habis' : 'Tambah'}
+          </button>
+        `;
+        productsGrid.appendChild(productCard);
+      });
+    }
+
+    function filterByCategory(category) {
+      currentCategory = category;
+      const allProducts = getCombinedProducts(); // Ini sudah memfilter stok > 0
+      
+      if (category === 'all') {
+        currentlyDisplayedProducts = [...allProducts];
+      } else {
+        currentlyDisplayedProducts = allProducts.filter(p => p.kategori === category);
+      }
+      
+      const searchTerm = document.getElementById('search-product').value.toLowerCase();
+      if (searchTerm) {
+          currentlyDisplayedProducts = currentlyDisplayedProducts.filter(product => product.nama.toLowerCase().includes(searchTerm));
+      }
+      
+      loadProductsToDisplay();
+    }
+
+    function searchProducts(event) {
+      const searchTerm = event.target.value.toLowerCase();
+      const allProducts = getCombinedProducts(); // Ini sudah memfilter stok > 0
+      let productsToSearch = [];
+
+      if (currentCategory === 'all') {
+        productsToSearch = [...allProducts];
+      } else {
+        productsToSearch = allProducts.filter(p => p.kategori === currentCategory);
+      }
+      
+      currentlyDisplayedProducts = productsToSearch.filter(product => product.nama.toLowerCase().includes(searchTerm));
+      loadProductsToDisplay();
+    }
+
+    function addToCart(productId) {
+      // Ambil data produk terbaru termasuk stoknya
+      const allAvailableProducts = getCombinedProducts(); // Ini sudah memfilter yang stoknya > 0
+      const product = allAvailableProducts.find(p => p.id === productId);
+
+      if (!product || product.stok <= 0) { // Periksa lagi stok di sini untuk keamanan ganda
+          alert('Produk tidak ditemukan atau stok habis.');
+          loadProductsToDisplay(); // Refresh tampilan jika ada perubahan stok mendadak
+          return;
+      }
+      
+      const existingItem = cart.find(item => item.id === productId);
+      
+      if (existingItem) {
+        // Periksa apakah penambahan akan melebihi stok produk aktual
+        if ((existingItem.quantity + 1) <= product.stok) {
+          existingItem.quantity += 1;
+        } else {
+          alert('Stok tidak mencukupi untuk jumlah yang diminta!');
+          return;
+        }
+      } else {
+        // Jika item baru, stok sudah dipastikan > 0 oleh getCombinedProducts dan pemeriksaan di atas
+        cart.push({
+            id: product.id,
+            nama: product.nama,
+            harga: product.harga,
+            gambar: product.gambar || 'placeholder.png',
+            kategori: product.kategori, 
+            quantity: 1,
+            stokSaatDitambahkan: product.stok // Simpan stok saat item ditambahkan, untuk validasi lebih lanjut jika perlu
+        });
+      }
+      
+      updateCart();
+      updateCartCount();
+    }
+
+    function updateCart() {
+      const cartItemsContainer = document.getElementById('cart-items');
+      cartItemsContainer.innerHTML = '';
+      
+      if (cart.length === 0) {
+        cartItemsContainer.innerHTML = '<div class="empty-cart">Keranjang kosong</div>';
+        document.getElementById('total-amount').textContent = 'Rp0';
+        return;
+      }
+      
+      let total = 0;
+      
+      cart.forEach(item => {
+        const cartItemDiv = document.createElement('div');
+        cartItemDiv.className = 'cart-item';
+        cartItemDiv.innerHTML = `
+          <div class="item-info">
+            <img src="${item.gambar}" alt="${item.nama}" onerror="this.onerror=null;this.src='placeholder.png';">
+            <div>
+              <h4>${item.nama}</h4>
+              <span>Rp${item.harga.toLocaleString('id-ID')} x ${item.quantity}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <span>Rp${(item.harga * item.quantity).toLocaleString('id-ID')}</span>
+            <button onclick="removeFromCart('${item.id}')">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+        cartItemsContainer.appendChild(cartItemDiv);
+        total += item.harga * item.quantity;
+      });
+      
+      document.getElementById('total-amount').textContent = `Rp${total.toLocaleString('id-ID')}`;
+    }
+
+    function removeFromCart(productId) {
+      const itemIndex = cart.findIndex(item => item.id === productId);
+      if (itemIndex !== -1) {
+        if (cart[itemIndex].quantity > 1) {
+            cart[itemIndex].quantity -=1;
+        } else {
+            cart.splice(itemIndex, 1);
+        }
+        updateCart();
+        updateCartCount();
+      }
+    }
+
+    function updateCartCount() {
+      const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+      document.getElementById('cart-count').textContent = count;
+    }
+
+    function toggleCart() {
+      const cartSection = document.querySelector('.cart-section');
+      if (cartSection) {
+          cartSection.classList.toggle('active');
+      }
+    }
+
+    function processPayment() {
+      if (cart.length === 0) {
+        alert('Keranjang belanja kosong!');
+        return;
+      }
+      
+      const total = cart.reduce((sum, item) => sum + (item.harga * item.quantity), 0);
+      document.getElementById('cash-total').textContent = `Rp${total.toLocaleString('id-ID')}`;
+      
+      document.getElementById('cash-amount').value = '';
+      document.getElementById('cash-change').textContent = 'Rp0';
+      
+      document.getElementById('payment-modal').style.display = 'block';
+    }
+
+    function calculateChange() {
+      const totalText = document.getElementById('cash-total').textContent;
+      const total = parseFloat(totalText.replace(/Rp|\./g, '').replace(',', '.'));
+      const received = parseFloat(document.getElementById('cash-amount').value) || 0;
+      const change = received - total;
+      document.getElementById('cash-change').textContent = `Rp${change >= 0 ? Math.max(0, change).toLocaleString('id-ID') : '0'}`;
+    }
+
+    function confirmCashPayment() {
+      const totalText = document.getElementById('cash-total').textContent;
+      const total = parseFloat(totalText.replace(/Rp|\./g, '').replace(',', '.'));
+      const received = parseFloat(document.getElementById('cash-amount').value) || 0;
+      
+      if (received < total) {
+        alert('Uang yang diterima kurang!');
+        return;
+      }
+      
+      completePayment();
+    }
+    
+    function updateProductStockAfterSale() {
+        let customProducts = JSON.parse(localStorage.getItem('customProducts')) || [];
+
+        cart.forEach(cartItem => {
+            const productIndexInCustom = customProducts.findIndex(p => p.id === cartItem.id);
+            if (productIndexInCustom !== -1) {
+                customProducts[productIndexInCustom].stok -= cartItem.quantity;
+                 if (customProducts[productIndexInCustom].stok < 0) customProducts[productIndexInCustom].stok = 0;
+            } else {
+                const originalProduct = allProductsMasterList.find(p => p.id === cartItem.id);
+                if (originalProduct) {
+                    const updatedProduct = { 
+                        ...originalProduct,
+                        stok: originalProduct.stok - cartItem.quantity 
+                    };
+                     if (updatedProduct.stok < 0) updatedProduct.stok = 0;
+                    customProducts.push(updatedProduct);
+                }
+            }
+        });
+        localStorage.setItem('customProducts', JSON.stringify(customProducts));
+    }
+
+    function completePayment() {
+      const kasirUsername = localStorage.getItem('username') || 'Tidak diketahui';
+      const transaction = {
+        id: 'TRX-' + Date.now(),
+        date: new Date().toLocaleString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        items: [...cart],
+        total: cart.reduce((sum, item) => sum + (item.harga * item.quantity), 0),
+        paymentMethod: 'cash',
+        kasir: kasirUsername,
+        status: 'completed'
+      };
+      
+      updateProductStockAfterSale();
+      
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      transactions.push(transaction);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+      
+      alert(`Pembayaran tunai berhasil!\nID Transaksi: ${transaction.id}`);
+      
+      cart = [];
+      updateCart();
+      updateCartCount();
+      closePaymentModal();
+      filterByCategory(currentCategory); 
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

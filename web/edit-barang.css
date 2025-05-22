@@ -1,0 +1,83 @@
+/* Styling untuk halaman edit-barang.html */
+.edit-barang-main {
+  max-width: 700px;
+  margin: 2rem auto;
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.edit-barang-main .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.edit-barang-main .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.edit-barang-main .form-group label {
+  display: block;
+  margin-bottom: .5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.edit-barang-main .form-group input[type="text"],
+.edit-barang-main .form-group input[type="number"],
+.edit-barang-main .form-group select { /* Jika ada select */
+  width: 100%;
+  padding: .75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+.edit-barang-main .form-group input.readonly-input {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
+
+.edit-barang-main .info-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+
+.edit-barang-main .btn-submit {
+  background: linear-gradient(135deg, #ffc107, #ff9800); /* Warna edit */
+  color: white;
+  padding: .75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: background 0.3s ease, transform 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.edit-barang-main .btn-submit:hover {
+  background: linear-gradient(135deg, #e0a800, #e68a00);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .edit-barang-main {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .edit-barang-main .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
