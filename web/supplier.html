@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Supplier - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="penjualan.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .action-buttons button {
+      margin-right: 5px;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      margin-bottom: 5px; 
+    }
+    .add-button-container {
+        margin-bottom: 1.5rem;
+        text-align: right;
+    }
+    .add-button {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        padding: .75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: background 0.3s ease, transform 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .add-button:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        transform: translateY(-2px);
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    .items-table th, 
+    .items-table td {
+      padding: 10px 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    .items-table th {
+      background-color: #f5f7ff;
+      color: #444;
+    }
+     .modal-content h3, .modal-content h4 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+    .modal-content .transaction-info p {
+        margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header id="mainHeader"> <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia</span>
+    </div>
+    <nav>
+      <a href="dashboard.html" id="navLinkDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="produk.html?kategori=semua" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="transaksi.html" id="navLinkTransaksi"><i class="fas fa-cash-register"></i> Transaksi</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="supplier.html" id="navLinkSupplier"><i class="fas fa-truck-loading"></i> Data Supplier</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk" class="admin-only-nav"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+    <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <main>
+    <div class="header-section">
+      <h2>Data Supplier</h2>
+      <button onclick="window.location.href='dashboard.html'" class="back-button">
+        <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+      </button>
+    </div>
+
+    <div class="add-button-container">
+        <button class="add-button" onclick="window.location.href='tambah-supplier.html'">
+            <i class="fas fa-plus"></i> Tambah Supplier Baru
+        </button>
+    </div>
+
+    <table class="transaction-table" id="supplierTable">
+      <thead>
+        <tr>
+          <th>ID Supplier</th>
+          <th>Nama Supplier</th>
+          <th>Kontak Person</th>
+          <th>Telepon</th>
+          <th>Email</th>
+          <th>Alamat</th>
+          <th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+    <div id="no-supplier" class="no-transactions" style="display:none;">Belum ada data supplier.</div>
+  </main>
+
+  <div id="purchaseHistoryModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closePurchaseHistoryModal()" style="position: absolute; top: 15px; right: 25px; font-size:1.8rem; cursor:pointer; color: #777;">&times;</span>
+        <h3>Riwayat Pembelian dari <span id="historySupplierName"></span></h3>
+        <table class="transaction-table" id="purchaseHistoryTable">
+            <thead>
+                <tr>
+                    <th>ID Pembelian</th>
+                    <th>Tanggal</th>
+                    <th>Total</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="purchaseHistoryList"></tbody>
+        </table>
+        <div id="no-purchase-history" class="no-transactions" style="display:none; padding:1rem 0;">Belum ada riwayat pembelian dari supplier ini.</div>
+        <button onclick="closePurchaseHistoryModal()" class="close-btn modal-action-button">Tutup</button>
+    </div>
+  </div>
+
+  <div id="purchaseDetailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closePurchaseDetailModal()" style="position: absolute; top: 15px; right: 25px; font-size:1.8rem; cursor:pointer; color: #777;">&times;</span>
+        <h3>Detail Pembelian</h3>
+        <div class="transaction-info">
+            <p><strong>ID Pembelian:</strong> <span id="detailPurchaseId"></span></p>
+            <p><strong>Supplier:</strong> <span id="detailPurchaseSupplierName"></span></p>
+            <p><strong>Tanggal:</strong> <span id="detailPurchaseDate"></span></p>
+        </div>
+        <h4>Item yang Dibeli:</h4>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Nama Produk/Item</th>
+                    <th>Harga Beli</th>
+                    <th>Jumlah</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="detailPurchaseItemsList"></tbody>
+        </table>
+        <p style="margin-top: 1rem;"><strong>Total Keseluruhan Pembelian:</strong> <span id="detailPurchaseTotal" style="font-weight:bold;"></span></p>
+        <button onclick="closePurchaseDetailModal()" class="close-btn modal-action-button">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    // --- Fungsi Navigasi Umum ---
+    function setNavigationForRole(role) {
+        const navLinks = {
+            Produk: document.getElementById('navLinkProduk'),
+            Transaksi: document.getElementById('navLinkTransaksi'),
+            DataPenjualan: document.getElementById('navLinkDataPenjualan'),
+            Supplier: document.getElementById('navLinkSupplier'),
+            Profil: document.getElementById('navLinkProfil'),
+            TambahProduk: document.getElementById('navLinkTambahProduk'),
+            Dashboard: document.getElementById('navLinkDashboard')
+        };
+        if (navLinks.Dashboard) navLinks.Dashboard.style.display = 'flex';
+        if (navLinks.Produk) navLinks.Produk.style.display = 'flex';
+        if (navLinks.Profil) navLinks.Profil.style.display = 'flex';
+        if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'none';
+        if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'none';
+        if (navLinks.Supplier) navLinks.Supplier.style.display = 'none';
+        if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'none';
+
+        if (role === "admin") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex';
+            if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'flex';
+            if (navLinks.Supplier) navLinks.Supplier.style.display = 'flex';
+            if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'flex';
+        } else if (role === "kasir") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex';
+        }
+    }
+
+    function setupFocusedNavigation(activeLinkId) {
+        const header = document.getElementById('mainHeader');
+        if (!header) return;
+        const navElement = header.querySelector('nav');
+        if (!navElement) return;
+        const navLinks = navElement.querySelectorAll('a');
+        navLinks.forEach(link => {
+            if (link.id === activeLinkId) {
+                if (link.style.display !== 'none') {
+                    link.style.display = 'flex'; 
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            } else {
+                link.style.display = 'none';
+                link.classList.remove('active');
+            }
+        });
+    }
+    
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = 'index.html';
+    }
+
+    // --- Sisa kode JavaScript dari supplier.html ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const role = localStorage.getItem('role');
+
+      if (!isLoggedIn || isLoggedIn !== "true" || role !== "admin") { // Hanya admin yang boleh akses supplier
+        alert('Akses ditolak. Halaman ini hanya untuk Admin.');
+        window.location.href = 'index.html';
+        return;
+      }
+      // 1. Atur visibilitas link berdasarkan role
+      setNavigationForRole(role);
+      // 2. Atur fokus pada link Data Supplier
+      setupFocusedNavigation('navLinkSupplier');
+      
+      loadSuppliers();
+    });
+
+    function loadSuppliers() { /* ... kode loadSuppliers Anda ... */ } //
+    function deleteSupplier(supplierId, supplierName) { /* ... kode deleteSupplier Anda ... */ } //
+    function editSupplier(supplierId) { /* ... kode editSupplier Anda ... */ } //
+    function viewPurchases(supplierId) { /* ... kode viewPurchases Anda ... */ } //
+    
+    const purchaseHistoryModalElement = document.getElementById('purchaseHistoryModal'); //
+    const purchaseDetailModalElement = document.getElementById('purchaseDetailModal'); //
+    function showPurchaseHistoryModal(supplierId, supplierName) { /* ... kode showPurchaseHistoryModal Anda ... */ } //
+    function closePurchaseHistoryModal() { /* ... kode closePurchaseHistoryModal Anda ... */ } //
+    function showSpecificPurchaseDetailModal(purchaseId) { /* ... kode showSpecificPurchaseDetailModal Anda ... */ } //
+    function closePurchaseDetailModal() { /* ... kode closePurchaseDetailModal Anda ... */ } //
+    window.onclick = function(event) { /* ... kode window.onclick Anda ... */ } //
+
+    // Implementasi fungsi-fungsi yang di-placeholder di atas (jika belum ada)
+    loadSuppliers = function() {
+      const suppliers = JSON.parse(localStorage.getItem('suppliersDB')) || [];
+      const tableBody = document.getElementById('supplierTable').getElementsByTagName('tbody')[0];
+      const noSupplierDiv = document.getElementById('no-supplier');
+      tableBody.innerHTML = ''; 
+
+      if (suppliers.length === 0) {
+        noSupplierDiv.style.display = 'block';
+        document.getElementById('supplierTable').style.display = 'none';
+        return;
+      }
+      
+      noSupplierDiv.style.display = 'none';
+      document.getElementById('supplierTable').style.display = '';
+
+      suppliers.forEach(supplier => {
+        let row = tableBody.insertRow();
+        row.insertCell().textContent = supplier.id;
+        row.insertCell().textContent = supplier.nama;
+        row.insertCell().textContent = supplier.kontakNama || '-';
+        row.insertCell().textContent = supplier.telepon || '-';
+        row.insertCell().textContent = supplier.email || '-';
+        row.insertCell().textContent = supplier.alamat || '-';
+        
+        let cellAksi = row.insertCell();
+        cellAksi.className = 'action-buttons';
+        cellAksi.innerHTML = `
+            <button class="detail-btn btn-edit" onclick="editSupplier('${supplier.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="detail-btn btn-delete" onclick="deleteSupplier('${supplier.id}', '${supplier.nama}')"><i class="fas fa-trash"></i> Hapus</button>
+            <button class="detail-btn btn-record-purchase" onclick="viewPurchases('${supplier.id}')"><i class="fas fa-receipt"></i> Catat Pembelian</button>
+            <button class="detail-btn btn-purchase-history" style="background-color:#17a2b8; color:white;" onclick="showPurchaseHistoryModal('${supplier.id}', '${supplier.nama.replace(/'/g, "\\'")}')"><i class="fas fa-history"></i> Riwayat Pembelian</button>
+        `;
+      });
+    }
+
+    deleteSupplier = function(supplierId, supplierName) {
+        if (confirm(`Apakah Anda yakin ingin menghapus supplier "${supplierName}" (ID: ${supplierId})? Ini tidak dapat diurungkan.`)) {
+            let suppliers = JSON.parse(localStorage.getItem('suppliersDB')) || [];
+            suppliers = suppliers.filter(s => s.id !== supplierId);
+            localStorage.setItem('suppliersDB', JSON.stringify(suppliers));
+            
+            let purchases = JSON.parse(localStorage.getItem('purchasesDB')) || [];
+            purchases = purchases.filter(p => p.supplierId !== supplierId);
+            localStorage.setItem('purchasesDB', JSON.stringify(purchases));
+
+            loadSuppliers(); 
+            alert(`Supplier "${supplierName}" dan riwayat pembelian terkait berhasil dihapus.`);
+        }
+    }
+    
+    editSupplier = function(supplierId) {
+        window.location.href = `edit-supplier.html?id=${supplierId}`;
+    }
+
+    viewPurchases = function(supplierId) {
+        window.location.href = `catat-pembelian.html?supplierId=${supplierId}`;
+    }
+    
+    showPurchaseHistoryModal = function(supplierId, supplierName) {
+        document.getElementById('historySupplierName').textContent = supplierName;
+        const allPurchases = JSON.parse(localStorage.getItem('purchasesDB')) || [];
+        const supplierPurchases = allPurchases.filter(p => p.supplierId === supplierId)
+                                         .sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)); 
+
+        const historyListBody = document.getElementById('purchaseHistoryList');
+        historyListBody.innerHTML = '';
+        const noHistoryDiv = document.getElementById('no-purchase-history');
+
+        if (supplierPurchases.length === 0) {
+            noHistoryDiv.style.display = 'block';
+            document.getElementById('purchaseHistoryTable').style.display = 'none';
+        } else {
+            noHistoryDiv.style.display = 'none';
+            document.getElementById('purchaseHistoryTable').style.display = '';
+            supplierPurchases.forEach(purchase => {
+                const row = historyListBody.insertRow();
+                row.innerHTML = `
+                    <td>${purchase.purchaseId}</td>
+                    <td>${new Date(purchase.purchaseDate).toLocaleDateString('id-ID')}</td>
+                    <td>Rp${purchase.totalPurchaseAmount.toLocaleString('id-ID')}</td>
+                    <td>
+                        <button class="detail-btn" style="font-size:0.8em;" onclick="showSpecificPurchaseDetailModal('${purchase.purchaseId}')">
+                            <i class="fas fa-eye"></i> Detail
+                        </button>
+                    </td>
+                `;
+            });
+        }
+        purchaseHistoryModalElement.style.display = 'block';
+    }
+
+    closePurchaseHistoryModal = function() {
+        purchaseHistoryModalElement.style.display = 'none';
+    }
+
+    showSpecificPurchaseDetailModal = function(purchaseId) {
+        const allPurchases = JSON.parse(localStorage.getItem('purchasesDB')) || [];
+        const purchase = allPurchases.find(p => p.purchaseId === purchaseId);
+
+        if (!purchase) {
+            alert('Detail pembelian tidak ditemukan!');
+            return;
+        }
+
+        document.getElementById('detailPurchaseId').textContent = purchase.purchaseId;
+        document.getElementById('detailPurchaseSupplierName').textContent = purchase.supplierName;
+        document.getElementById('detailPurchaseDate').textContent = new Date(purchase.purchaseDate).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('detailPurchaseTotal').textContent = `Rp${purchase.totalPurchaseAmount.toLocaleString('id-ID')}`;
+
+        const itemsListBody = document.getElementById('detailPurchaseItemsList');
+        itemsListBody.innerHTML = '';
+        purchase.items.forEach(item => {
+            const row = itemsListBody.insertRow();
+            row.insertCell().textContent = item.productName;
+            row.insertCell().textContent = `Rp${item.purchasePrice.toLocaleString('id-ID')}`;
+            row.insertCell().textContent = item.quantity;
+            row.insertCell().textContent = `Rp${(item.quantity * item.purchasePrice).toLocaleString('id-ID')}`;
+        });
+        purchaseDetailModalElement.style.display = 'block';
+    }
+
+    closePurchaseDetailModal = function() {
+        purchaseDetailModalElement.style.display = 'none';
+    }
+    
+    window.onclick = function(event) {
+        if (event.target == purchaseHistoryModalElement) {
+            closePurchaseHistoryModal();
+        }
+        if (event.target == purchaseDetailModalElement) {
+            closePurchaseDetailModal();
+        }
+    }
+  </script>
+</body>
+</html>

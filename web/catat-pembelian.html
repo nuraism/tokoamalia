@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catat Pembelian - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="tambah-produk.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .item-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed #eee;
+    }
+    .item-row select, .item-row input {
+      flex-grow: 1;
+      min-width: 80px; 
+    }
+    .item-row .product-select { flex-basis: 22%; }
+    .item-row .new-product-name-input { flex-basis: 22%; }
+    .item-row .quantity-input { flex-basis: 10%; }
+    .item-row .price-input { flex-basis: 15%; }
+    .item-row .subtotal-display { flex-basis: 15%; font-weight: bold; }
+    .item-row .remove-item-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex-basis: auto;
+      flex-grow: 0;
+    }
+    .item-row-separator {
+        margin: 0 5px;
+        align-self: center;
+        flex-shrink: 0;
+        font-size: 0.9em;
+        color: #555;
+    }
+    .total-pembelian {
+        margin-top: 20px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: right;
+    }
+    .form-group {
+        margin-bottom: 1rem; 
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: .5rem;
+        font-weight: 500;
+    }
+    .form-group input[type="date"],
+    .form-group select {
+        width: 100%;
+        padding: .75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <header id="mainHeader">
+    <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia - Admin</span>
+    </div>
+    <nav>
+      <a href="dashboard.html" id="navLinkDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="produk.html?kategori=semua" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="transaksi.html" id="navLinkTransaksi"><i class="fas fa-cash-register"></i> Transaksi</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="supplier.html" id="navLinkSupplier"><i class="fas fa-truck-loading"></i> Data Supplier</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk" class="admin-only-nav"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+    <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <main class="tambah-produk-main">
+    <div class="header-section">
+      <h2 id="pageTitle">Pembelian dari Supplier</h2>
+      <button onclick="window.location.href='supplier.html'" class="back-button">
+        <i class="fas fa-arrow-left"></i> Kembali ke Data Supplier
+      </button>
+    </div>
+
+    <form id="formCatatPembelian">
+      <div class="form-group">
+        <label for="supplierIdSelect">Supplier</label>
+        <select id="supplierIdSelect" name="supplierIdSelect" required></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purchaseDate">Tanggal Pembelian</label>
+          <input type="date" id="purchaseDate" name="purchaseDate" required>
+        </div>
+      </div>
+
+      <hr style="margin: 20px 0;">
+      <h3>Barang yang Dibeli</h3>
+      <div id="itemsContainer">
+      </div>
+      <button type="button" id="addItemBtn" class="btn-submit" style="background: #17a2b8; margin-bottom:20px;"><i class="fas fa-plus"></i> Tambah Baris Barang</button>
+
+      <div class="total-pembelian">
+        Total Keseluruhan: <span id="grandTotalDisplay">Rp0</span>
+      </div>
+
+      <button type="submit" class="btn-submit" style="background-color: #28a745;"><i class="fas fa-save"></i> Simpan Data Pembelian</button>
+    </form>
+  </main>
+
+  <script>
+    // --- Data Produk Default ---
+    const produkDatabaseDefault = {
+      'bahan-pokok': [
+        { id: "bp001", nama: "99 20kg", harga: 350000, stok: 10, gambar: "99.png" },
+        { id: "bp002", nama: "Mi-Won 250gr", harga: 8000, stok: 24, gambar: "miwon.png" },
+        { id: "bp003", nama: "Garam 500gr", harga: 8000, stok: 48, gambar: "garam.png" },
+        { id: "bp004", nama: "Kopi senang 250gr", harga: 22000, stok: 50, gambar: "kopi.png" },
+        { id: "bp005", nama: "Kunci Mas 1L", harga: 20000, stok: 12, gambar: "kc.png" },
+        { id: "bp006", nama: "Gula pasir 1kg", harga: 20000, stok: 50, gambar: "gula.png" },
+        { id: "bp007", nama: "Garam 250gr", harga: 5000, stok: 25, gambar: "garam.png" },
+        { id: "bp008", nama: "Mi-Won 500gr", harga: 15000, stok: 10, gambar: "miwon.png" },
+        { id: "bp009", nama: "Kunci Mas 2L", harga: 40000, stok: 12, gambar: "kc.png" },
+        { id: "bp010", nama: "Merpati 17kg", harga: 275000, stok: 10, gambar: "merpati.png" },
+        { id: "bp011", nama: "Karung Kuning 10kg", harga: 150000, stok: 10, gambar: "karungkuning.png" },
+        { id: "bp012", nama: "Padi Udang 20kg", harga: 355000, stok: 10, gambar: "padiudang.png" }
+      ],
+      'makanan': [
+        { id: "ma013", nama: "Hatari Cocopuff", harga: 8000, stok: 11, gambar: "hatari.png" },
+        { id: "ma014", nama: "Malkits Crackers", harga: 8000, stok: 16, gambar: "malkits.png" },
+        { id: "ma015", nama: "Saltcheese", harga: 12000, stok: 24, gambar: "salt.png" },
+        { id: "ma016", nama: "Sari Gandum", harga: 12000, stok: 24, gambar: "sarigandum.png" },
+        { id: "ma017", nama: "Kusuka", harga: 8000, stok: 32, gambar: "kusuka.png" },
+        { id: "ma018", nama: "Fullo Coklat", harga: 15000, stok: 10, gambar: "Fullo.png" },
+        { id: "ma019", nama: "Kopiko", harga: 10000, stok: 24, gambar: "kopiko.png" },
+        { id: "ma020", nama: "Hatari peanut", harga: 8000, stok: 32, gambar: "peanut.png" },
+        { id: "ma021", nama: "Superco", harga: 10000, stok: 24, gambar: "superco.png" },
+        { id: "ma022", nama: "Malkits Coklat", harga: 8000, stok: 18, gambar: "malkits2.png" }
+      ],
+      'minuman': [
+        { id: "mi023", nama: "Aqua 600ml", harga: 5000, stok: 13, gambar: "aqua.png" },
+        { id: "mi024", nama: "Teh Pucuk 350ml", harga: 5000, stok: 35, gambar: "tehpucuk.png" },
+        { id: "mi025", nama: "Mizone 500ml", harga: 8000, stok: 20, gambar: "mizone.png" },
+        { id: "mi026", nama: "Fanta 250ml", harga: 7000, stok: 20, gambar: "fanta.png" },
+        { id: "mi027", nama: "Coca cola 250ml", harga: 7000, stok: 20, gambar: "cocacola.png" },
+        { id: "mi028", nama: "Sprite", harga: 7000, stok: 20, gambar: "sprite.png" },
+        { id: "mi029", nama: "Nestle 600ml", harga: 5000, stok: 20, gambar: "nestle.png" },
+        { id: "mi030", nama: "Aqua 1500ml", harga: 10000, stok: 20, gambar: "aqua.png" },
+        { id: "mi031", nama: "Nestle 1500ml", harga: 10000, stok: 20, gambar: "nestle.png" }
+      ]
+    };
+    let allProductsMasterList = []; //
+    Object.keys(produkDatabaseDefault).forEach(kategori => {
+        produkDatabaseDefault[kategori].forEach(produk => {
+            allProductsMasterList.push({...produk, kategori});
+        });
+    });
+
+    // --- Fungsi Navigasi Umum & Logout ---
+    function setNavigationForRole(role) { /* ... (Salin dari kode sebelumnya) ... */ } //
+    function setupFocusedNavigation(activeLinkId) { /* ... (Salin dari kode sebelumnya) ... */ } //
+    function logout() { /* ... (Salin dari kode sebelumnya) ... */ } //
+
+    // --- Sisa kode JavaScript dari catat-pembelian.html ---
+    function getCombinedProductsForDropdown() { /* ... (Salin dari kode sebelumnya) ... */ } //
+    function populateSuppliersDropdown() { /* ... (Salin dari kode sebelumnya) ... */ } //
+    let itemRowCounter = 0; //
+    function addPurchaseItemRow() { /* ... (Salin dari kode sebelumnya) ... */ } //
+    function removeItemRow(rowId) { /* ... (Salin dari kode sebelumnya) ... */ } //
+    function updateTotals() { /* ... (Salin dari kode sebelumnya) ... */ } //
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const role = localStorage.getItem('role');
+
+      if (!isLoggedIn || isLoggedIn !== "true" || role !== "admin") {
+        alert('Akses ditolak. Halaman ini hanya untuk Admin.');
+        window.location.href = 'index.html';
+        return;
+      }
+      setNavigationForRole(role);
+      setupFocusedNavigation('navLinkSupplier'); // Set fokus ke Data Supplier
+      
+      populateSuppliersDropdown();
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('purchaseDate').value = today;
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const supplierIdFromUrl = urlParams.get('supplierId');
+      if (supplierIdFromUrl) {
+        document.getElementById('supplierIdSelect').value = supplierIdFromUrl;
+        const supplierName = document.getElementById('supplierIdSelect').options[document.getElementById('supplierIdSelect').selectedIndex]?.text || supplierIdFromUrl;
+        document.getElementById('pageTitle').textContent = `Catat Pembelian dari: ${supplierName}`;
+      }
+
+      document.getElementById('addItemBtn').addEventListener('click', addPurchaseItemRow);
+      addPurchaseItemRow(); 
+      document.getElementById('formCatatPembelian').addEventListener('submit', savePurchaseData);
+    });
+    
+    // Salin implementasi lengkap fungsi-fungsi navigasi dan helper di sini
+    setNavigationForRole = function(role) {
+        const navLinks = {
+            Produk: document.getElementById('navLinkProduk'),
+            Transaksi: document.getElementById('navLinkTransaksi'),
+            DataPenjualan: document.getElementById('navLinkDataPenjualan'),
+            Supplier: document.getElementById('navLinkSupplier'),
+            Profil: document.getElementById('navLinkProfil'),
+            TambahProduk: document.getElementById('navLinkTambahProduk'),
+            Dashboard: document.getElementById('navLinkDashboard')
+        };
+        if (navLinks.Dashboard) navLinks.Dashboard.style.display = 'flex';
+        if (navLinks.Produk) navLinks.Produk.style.display = 'flex';
+        if (navLinks.Profil) navLinks.Profil.style.display = 'flex';
+        if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'none';
+        if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'none';
+        if (navLinks.Supplier) navLinks.Supplier.style.display = 'none'; // Default none
+        if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'none';
+
+        if (role === "admin") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex';
+            if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'flex';
+            if (navLinks.Supplier) navLinks.Supplier.style.display = 'flex'; // Admin bisa lihat
+            if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'flex';
+        } else if (role === "kasir") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex';
+        }
+    };
+    setupFocusedNavigation = function(activeLinkId) {
+        const header = document.getElementById('mainHeader');
+        if (!header) return;
+        const navElement = header.querySelector('nav');
+        if (!navElement) return;
+        const navLinks = navElement.querySelectorAll('a');
+        let activeLinkIsVisible = false;
+        navLinks.forEach(link => {
+            if (link.id === activeLinkId) {
+                if (link.style.display !== 'none') {
+                    link.style.display = 'flex'; 
+                    link.classList.add('active');
+                    activeLinkIsVisible = true;
+                } else {
+                    link.classList.remove('active');
+                }
+            } else {
+                link.style.display = 'none';
+                link.classList.remove('active');
+            }
+        });
+        let trulyVisibleLinks = 0;
+        navLinks.forEach(link => {
+            const linkStyle = window.getComputedStyle(link);
+            if (linkStyle.display === 'flex' || linkStyle.display === 'block' || linkStyle.display === 'inline-flex') {
+                trulyVisibleLinks++;
+            }
+        });
+        if (trulyVisibleLinks === 1 && activeLinkIsVisible) {
+            navElement.style.flexGrow = "1"; 
+            navElement.style.justifyContent = "center";
+        } else {
+            navElement.style.flexGrow = "0"; 
+            navElement.style.justifyContent = "flex-start"; 
+        }
+    };
+    logout = function() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = 'index.html';
+    };
+    getCombinedProductsForDropdown = function() { //
+        let combinedProducts = JSON.parse(JSON.stringify(allProductsMasterList));
+        const customProducts = JSON.parse(localStorage.getItem('customProducts')) || [];
+        customProducts.forEach(customProduct => {
+            const index = combinedProducts.findIndex(p => p.id === customProduct.id);
+            if (index !== -1) {
+                combinedProducts[index] = {...combinedProducts[index], ...customProduct};
+            } else {
+                if(customProduct.kategori) { 
+                     combinedProducts.push(customProduct);
+                }
+            }
+        });
+        return combinedProducts.filter(p => !p.isDeleted).sort((a,b) => a.nama.localeCompare(b.nama));
+    };
+    populateSuppliersDropdown = function() { //
+      const suppliers = JSON.parse(localStorage.getItem('suppliersDB')) || [];
+      const selectElement = document.getElementById('supplierIdSelect');
+      selectElement.innerHTML = '<option value="">Pilih Supplier...</option>';
+      suppliers.forEach(supplier => {
+        const option = document.createElement('option');
+        option.value = supplier.id;
+        option.textContent = `${supplier.nama} (ID: ${supplier.id})`;
+        selectElement.appendChild(option);
+      });
+    };
+    addPurchaseItemRow = function() { //
+      itemRowCounter++;
+      const itemsContainer = document.getElementById('itemsContainer');
+      const itemRow = document.createElement('div');
+      itemRow.className = 'item-row';
+      itemRow.id = `itemRow-${itemRowCounter}`;
+      const availableProducts = getCombinedProductsForDropdown();
+      let productOptions = '<option value="">Pilih Produk (Jika Ada)...</option>';
+      availableProducts.forEach(p => {
+        productOptions += `<option value="${p.id}" data-nama="${p.nama}">${p.nama} (Stok Jual: ${p.stok || 0})</option>`;
+      });
+      itemRow.innerHTML = `
+        <select class="product-select" name="productId[]">${productOptions}</select>
+        <span class="item-row-separator">atau</span>
+        <input type="text" class="new-product-name-input" name="newProductName[]" placeholder="Nama Produk Baru">
+        <input type="number" class="quantity-input" name="quantity[]" placeholder="Jml" min="1" required value="1">
+        <input type="number" class="price-input" name="purchasePrice[]" placeholder="Harga Beli" min="0" required>
+        <span class="subtotal-display">Rp0</span>
+        <button type="button" class="remove-item-btn" onclick="removeItemRow('itemRow-${itemRowCounter}')"><i class="fas fa-trash"></i></button>
+      `;
+      itemsContainer.appendChild(itemRow);
+      itemRow.querySelectorAll('.quantity-input, .price-input, .product-select, .new-product-name-input').forEach(input => {
+        input.addEventListener('input', updateTotals);
+      });
+       itemRow.querySelector('.product-select').addEventListener('change', function() {
+            if (this.value !== "") { 
+                const newProductNameInput = this.closest('.item-row').querySelector('.new-product-name-input');
+                if(newProductNameInput) newProductNameInput.value = ""; 
+            }
+            updateTotals();
+        });
+        itemRow.querySelector('.new-product-name-input').addEventListener('input', function() {
+            if (this.value.trim() !== "") { 
+                const productSelect = this.closest('.item-row').querySelector('.product-select');
+                if(productSelect) productSelect.value = ""; 
+            }
+            updateTotals();
+        });
+    };
+    removeItemRow = function(rowId) { //
+      document.getElementById(rowId)?.remove();
+      updateTotals();
+    };
+    updateTotals = function() { //
+        let grandTotal = 0;
+        document.querySelectorAll('.item-row').forEach(row => {
+            const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
+            const price = parseFloat(row.querySelector('.price-input').value) || 0;
+            const subtotal = quantity * price;
+            row.querySelector('.subtotal-display').textContent = `Rp${subtotal.toLocaleString('id-ID')}`;
+            grandTotal += subtotal;
+        });
+        document.getElementById('grandTotalDisplay').textContent = `Rp${grandTotal.toLocaleString('id-ID')}`;
+    };
+
+    function savePurchaseData(event) { //
+      event.preventDefault();
+      const supplierId = document.getElementById('supplierIdSelect').value;
+      if (!supplierId) {
+          alert('Supplier harus dipilih!');
+          return;
+      }
+      const items = [];
+      let validItems = true;
+      document.querySelectorAll('.item-row').forEach((row, index) => {
+        if (!validItems) return; 
+        const productIdSelected = row.querySelector('.product-select').value;
+        const newProductNameInput = row.querySelector('.new-product-name-input').value.trim();
+        const quantity = parseInt(row.querySelector('.quantity-input').value);
+        const purchasePrice = parseFloat(row.querySelector('.price-input').value);
+        let itemProductId = null;
+        let itemProductName = '';
+        let isNewForRecord = false; 
+        if (productIdSelected) {
+            if (newProductNameInput) {
+                alert(`Pada baris barang ke-${index + 1}, mohon pilih produk yang sudah ada ATAU isi nama produk baru, jangan keduanya.`);
+                validItems = false; return;
+            }
+            itemProductId = productIdSelected;
+            itemProductName = row.querySelector('.product-select').options[row.querySelector('.product-select').selectedIndex]?.dataset.nama || 'Produk Tidak Dikenali';
+            isNewForRecord = false;
+        } else if (newProductNameInput) {
+            itemProductId = `NEWP_${Date.now()}_${index}`; 
+            itemProductName = newProductNameInput;
+            isNewForRecord = true;
+        } else {
+            alert(`Pada baris barang ke-${index + 1}, mohon pilih produk yang sudah ada atau isi nama produk baru.`);
+            validItems = false; return;
+        }
+        if (isNaN(quantity) || quantity <= 0) {
+          alert(`Pada baris barang ke-${index + 1}, jumlah barang tidak valid.`);
+          validItems = false; return;
+        }
+        if (isNaN(purchasePrice) || purchasePrice < 0) {
+          alert(`Pada baris barang ke-${index + 1}, harga beli tidak valid.`);
+          validItems = false; return;
+        }
+        items.push({ productId: itemProductId, productName: itemProductName, quantity, purchasePrice, isNewForRecord, kategoriProduk: allProductsMasterList.find(p=>p.id === itemProductId)?.kategori || 'tidak-diketahui' }); // Tambahkan kategori jika ada
+      });
+      if (!validItems) return;
+      if (items.length === 0) {
+        alert('Minimal harus ada satu barang yang dibeli.');
+        return;
+      }
+      const purchaseId = `PCH-${Date.now()}`;
+      const purchaseDate = document.getElementById('purchaseDate').value;
+      const invoiceNumber = ""; 
+      const notes = ""; 
+      const totalPurchaseAmount = items.reduce((sum, item) => sum + (item.quantity * item.purchasePrice), 0);
+      const newPurchase = {
+        purchaseId, supplierId,
+        supplierName: document.getElementById('supplierIdSelect').options[document.getElementById('supplierIdSelect').selectedIndex]?.text || supplierId,
+        purchaseDate, invoiceNumber, items, totalPurchaseAmount, notes,
+        recordedBy: localStorage.getItem('username') || 'Admin'
+      };
+      let purchases = JSON.parse(localStorage.getItem('purchasesDB')) || [];
+      purchases.push(newPurchase);
+      localStorage.setItem('purchasesDB', JSON.stringify(purchases));
+
+      updateProductStockAfterPurchase(items); // Panggil fungsi update stok
+
+      alert('Data pembelian berhasil disimpan dan stok produk telah diperbarui (jika relevan)!');
+      window.location.href = `supplier.html?supplierId=${supplierId}`; 
+    }
+
+    function updateProductStockAfterPurchase(purchasedItems) {
+        let customProducts = JSON.parse(localStorage.getItem('customProducts')) || [];
+        // Gunakan allProductsMasterList yang sudah ada di scope ini
+        // let allProdsMasterCopy = JSON.parse(JSON.stringify(allProductsMasterList)); // Tidak perlu copy jika hanya baca
+
+        purchasedItems.forEach(item => {
+            // Hanya update stok jika item BUKAN item baru untuk catatan (isNewForRecord === false)
+            if (item.isNewForRecord) {
+                console.log(`Item "${item.productName}" (ID: ${item.productId}) adalah item baru hanya untuk catatan, stok penjualan tidak diubah.`);
+                return; 
+            }
+
+            const productId = item.productId;
+            const quantityPurchased = item.quantity;
+
+            let productIndexInCustom = customProducts.findIndex(p => p.id === productId);
+
+            if (productIndexInCustom !== -1) {
+                // Produk sudah ada di customProducts, update stoknya
+                customProducts[productIndexInCustom].stok = (parseInt(customProducts[productIndexInCustom].stok) || 0) + quantityPurchased;
+                if (customProducts[productIndexInCustom].isDeleted) { 
+                    delete customProducts[productIndexInCustom].isDeleted; // Aktifkan kembali jika sebelumnya dihapus
+                }
+                console.log(`Stok produk ${customProducts[productIndexInCustom].nama} (custom) diperbarui menjadi: ${customProducts[productIndexInCustom].stok}`);
+            } else {
+                // Produk belum ada di customProducts, cari di master list default
+                const originalProduct = allProductsMasterList.find(p => p.id === productId);
+                if (originalProduct) {
+                    const newCustomProductEntry = {
+                        ...originalProduct, // Salin semua properti dari produk default
+                        stok: (parseInt(originalProduct.stok) || 0) + quantityPurchased, // Tambah stok
+                    };
+                    delete newCustomProductEntry.isDeleted; // Pastikan tidak ada flag isDeleted
+                    customProducts.push(newCustomProductEntry);
+                    console.log(`Produk ${newCustomProductEntry.nama} (default) ditambahkan/diperbarui ke customProducts dengan stok: ${newCustomProductEntry.stok}`);
+                } else {
+                    console.warn(`Produk dengan ID ${productId} (yang seharusnya produk jual) tidak ditemukan di master list saat update stok pembelian.`);
+                }
+            }
+        });
+        localStorage.setItem('customProducts', JSON.stringify(customProducts));
+        console.log("localStorage 'customProducts' telah diperbarui.");
+    }
+
+  </script>
+</body>
+</html>

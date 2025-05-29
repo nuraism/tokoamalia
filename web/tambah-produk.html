@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tambah Produk - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css"> 
+  <link rel="stylesheet" href="tambah-produk.css"> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+  <header id="mainHeader"> <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia - Admin</span>
+    </div>
+    <nav>
+      <a href="dashboard.html" id="navLinkDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="produk.html?kategori=semua" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="transaksi.html" id="navLinkTransaksi"><i class="fas fa-cash-register"></i> Transaksi</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="supplier.html" id="navLinkSupplier"><i class="fas fa-truck-loading"></i> Data Supplier</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk" class="admin-only-nav"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+    <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <main class="tambah-produk-main"> 
+    <div class="header-section"> 
+      <h2>Tambah Produk Baru</h2> 
+      <button onclick="window.location.href='dashboard.html'" class="back-button"> 
+        <i class="fas fa-arrow-left"></i> Kembali
+      </button>
+    </div>
+
+    <form id="formTambahProduk"> 
+      <div class="form-group"> 
+        <label for="productId">ID Produk</label> 
+        <input type="text" id="productId" name="productId" required> 
+        <p class="info-text">Contoh: bp013, ma025, mi035. Pastikan unik.</p> 
+      </div>
+      <div class="form-group"> 
+        <label for="productName">Nama Produk</label> 
+        <input type="text" id="productName" name="productName" required> 
+      </div>
+      <div class="form-group"> 
+        <label for="productPrice">Harga Produk</label> 
+        <input type="number" id="productPrice" name="productPrice" required min="0"> 
+      </div>
+      <div class="form-group"> 
+        <label for="productStock">Stok Produk</label> 
+        <input type="number" id="productStock" name="productStock" required min="0"> 
+      </div>
+      <div class="form-group"> 
+        <label for="productCategory">Kategori Produk</label> 
+        <select id="productCategory" name="productCategory" required> 
+            <option value="">Pilih Kategori...</option> 
+            <option value="bahan-pokok">Bahan Pokok</option> 
+            <option value="makanan">Makanan</option> 
+            <option value="minuman">Minuman</option> 
+        </select>
+      </div>
+      <div class="form-group"> 
+        <label for="productImage">Gambar Produk (Nama File)</label> 
+        <input type="text" id="productImage" name="productImage" placeholder="contoh: namaGambar.png"> 
+        <p class="info-text">Masukkan nama file gambar. Pastikan gambar ada di folder yang sama.</p> 
+      </div>
+      <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> Tambah Produk</button> 
+    </form>
+  </main>
+
+  <script>
+    // --- Fungsi Navigasi Umum & Logout ---
+    function setNavigationForRole(role) { /* ... (sama seperti di supplier.html) ... */ }
+    function setupFocusedNavigation(activeLinkId) { /* ... (sama seperti di supplier.html) ... */ }
+    function logout() { /* ... (sama seperti di supplier.html) ... */ }
+
+    // --- Sisa kode JavaScript dari tambah-produk.html ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn'); 
+      const role = localStorage.getItem('role'); 
+
+      if (!isLoggedIn || isLoggedIn !== "true" || role !== "admin") { 
+        alert('Akses ditolak. Anda harus login sebagai admin.'); 
+        window.location.href = 'index.html'; 
+        return; 
+      }
+      setNavigationForRole(role);
+      setupFocusedNavigation('navLinkTambahProduk'); 
+    });
+    
+    // Implementasi fungsi-fungsi yang di-placeholder
+    setNavigationForRole = function(role) { //
+        const navLinks = {
+            Produk: document.getElementById('navLinkProduk'),
+            Transaksi: document.getElementById('navLinkTransaksi'),
+            DataPenjualan: document.getElementById('navLinkDataPenjualan'),
+            Supplier: document.getElementById('navLinkSupplier'),
+            Profil: document.getElementById('navLinkProfil'),
+            TambahProduk: document.getElementById('navLinkTambahProduk'),
+            Dashboard: document.getElementById('navLinkDashboard')
+        };
+
+        // Visibilitas link di header "Tambah Produk" mungkin sedikit berbeda
+        // karena ini halaman admin-only. Kita bisa menyembunyikan "Transaksi"
+        // dan menampilkan link admin lainnya.
+        if (navLinks.Dashboard) navLinks.Dashboard.style.display = 'flex';
+        if (navLinks.Produk) navLinks.Produk.style.display = 'flex'; // Ganti ke navLinkProduk
+        if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'flex';
+        if (navLinks.Supplier) navLinks.Supplier.style.display = 'flex';
+        if (navLinks.Profil) navLinks.Profil.style.display = 'flex';
+        if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'flex';
+        
+        // Sembunyikan yang tidak relevan di halaman ini atau untuk role (meskipun sudah dicek admin)
+        if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'none'; 
+    };
+
+    setupFocusedNavigation = function(activeLinkId) {
+        const header = document.getElementById('mainHeader');
+        if (!header) return;
+        const navElement = header.querySelector('nav');
+        if (!navElement) return;
+        const navLinks = navElement.querySelectorAll('a');
+        navLinks.forEach(link => {
+            if (link.id === activeLinkId) {
+                if (link.style.display !== 'none') {
+                    link.style.display = 'flex'; 
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            } else {
+                link.style.display = 'none';
+                link.classList.remove('active');
+            }
+        });
+    };
+    logout = function() { //
+      localStorage.removeItem('isLoggedIn'); 
+      localStorage.removeItem('username'); 
+      localStorage.removeItem('role'); 
+      window.location.href = 'index.html'; 
+    };
+
+    document.getElementById('formTambahProduk').addEventListener('submit', function(event) { //
+      event.preventDefault(); 
+
+      const id = document.getElementById('productId').value.trim(); 
+      const nama = document.getElementById('productName').value.trim(); 
+      const harga = parseInt(document.getElementById('productPrice').value); 
+      const stok = parseInt(document.getElementById('productStock').value); 
+      const kategori = document.getElementById('productCategory').value; 
+      const gambar = document.getElementById('productImage').value.trim() || 'placeholder.png'; 
+
+      if (!id || !nama || isNaN(harga) || isNaN(stok) || !kategori) { 
+        alert('Semua field (kecuali gambar) harus diisi dengan benar!'); 
+        return;
+      }
+      if (!id.match(/^(bp|ma|mi)\d{1,}$/)) { 
+        alert('Format ID tidak sesuai. Contoh: bp1, ma13, mi23. Awalan bp/ma/mi diikuti angka.');
+        return;
+      }
+
+      const newProduct = { id, nama, harga, stok, gambar, kategori }; 
+      let customProducts = JSON.parse(localStorage.getItem('customProducts')) || []; 
+      const existingProductIndex = customProducts.findIndex(p => p.id === id); 
+
+      if (existingProductIndex !== -1) { 
+        if(confirm('Produk dengan ID ini sudah ada. Apakah Anda ingin memperbaruinya?')) { 
+            customProducts[existingProductIndex] = newProduct; 
+        } else {
+            return; 
+        }
+      } else {
+         customProducts.push(newProduct); 
+      }
+
+      localStorage.setItem('customProducts', JSON.stringify(customProducts)); 
+      alert('Produk berhasil ditambahkan/diperbarui!'); 
+      this.reset(); 
+    });
+  </script>
+</body>
+</html>

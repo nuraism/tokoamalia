@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tambah Supplier - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css">
+  <link rel="stylesheet" href="tambah-produk.css"> {/* Menggunakan CSS yang mirip dengan tambah produk */}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia - Admin</span>
+    </div>
+     <nav>
+      <a href="produk.html" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="supplier.html" id="navLinkSupplier" class="active"><i class="fas fa-truck-loading"></i> Data Supplier</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+    <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <main class="tambah-produk-main"> {/* Menggunakan class styling yang sama */}
+    <div class="header-section">
+      <h2>Tambah Supplier Baru</h2>
+      <button onclick="window.location.href='supplier.html'" class="back-button">
+        <i class="fas fa-arrow-left"></i> Kembali ke Data Supplier
+      </button>
+    </div>
+
+    <form id="formTambahSupplier">
+      <div class="form-group">
+        <label for="supplierId">ID Supplier</label>
+        <input type="text" id="supplierId" name="supplierId" required>
+        <p class="info-text">Contoh: SUP001. Pastikan unik.</p>
+      </div>
+      <div class="form-group">
+        <label for="supplierName">Nama Supplier</label>
+        <input type="text" id="supplierName" name="supplierName" required>
+      </div>
+      <div class="form-group">
+        <label for="contactPerson">Nama Kontak Person</label>
+        <input type="text" id="contactPerson" name="contactPerson">
+      </div>
+      <div class="form-group">
+        <label for="supplierPhone">Telepon Supplier</label>
+        <input type="tel" id="supplierPhone" name="supplierPhone">
+      </div>
+      <div class="form-group">
+        <label for="supplierEmail">Email Supplier</label>
+        <input type="email" id="supplierEmail" name="supplierEmail">
+      </div>
+      <div class="form-group">
+        <label for="supplierAddress">Alamat Supplier</label>
+        <textarea id="supplierAddress" name="supplierAddress" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="supplierNotes">Catatan (Opsional)</label>
+        <textarea id="supplierNotes" name="supplierNotes" rows="2"></textarea>
+      </div>
+      <button type="submit" class="btn-submit"><i class="fas fa-plus"></i> Tambah Supplier</button>
+    </form>
+  </main>
+
+  <script>
+     function setAdminNavigation() {
+        document.getElementById('navLinkProduk').style.display = 'flex';
+        document.getElementById('navLinkDataPenjualan').style.display = 'flex';
+        document.getElementById('navLinkSupplier').style.display = 'flex';
+        document.getElementById('navLinkProfil').style.display = 'flex';
+        document.getElementById('navLinkTambahProduk').style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const role = localStorage.getItem('role');
+
+      if (!isLoggedIn || isLoggedIn !== "true" || role !== "admin") {
+        alert('Akses ditolak. Halaman ini hanya untuk Admin.');
+        window.location.href = 'index.html';
+        return;
+      }
+      setAdminNavigation();
+      generateSupplierId(); // Otomatis generate ID jika kosong
+    });
+
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = 'index.html';
+    }
+    
+    function generateSupplierId() {
+        const suppliers = JSON.parse(localStorage.getItem('suppliersDB')) || [];
+        const lastIdNum = suppliers.length > 0 ? parseInt(suppliers[suppliers.length - 1].id.replace('SUP', '')) : 0;
+        const newId = `SUP${String(lastIdNum + 1).padStart(3, '0')}`;
+        document.getElementById('supplierId').value = newId;
+    }
+
+    document.getElementById('formTambahSupplier').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const id = document.getElementById('supplierId').value.trim();
+      const nama = document.getElementById('supplierName').value.trim();
+      const kontakNama = document.getElementById('contactPerson').value.trim();
+      const telepon = document.getElementById('supplierPhone').value.trim();
+      const email = document.getElementById('supplierEmail').value.trim();
+      const alamat = document.getElementById('supplierAddress').value.trim();
+      const catatan = document.getElementById('supplierNotes').value.trim();
+
+      if (!id || !nama) {
+        alert('ID Supplier dan Nama Supplier wajib diisi!');
+        return;
+      }
+
+      const newSupplier = { id, nama, kontakNama, telepon, email, alamat, catatan };
+      let suppliers = JSON.parse(localStorage.getItem('suppliersDB')) || [];
+      
+      // Cek jika ID sudah ada
+      if (suppliers.some(s => s.id === id)) {
+          alert(`ID Supplier "${id}" sudah digunakan. Harap gunakan ID yang unik.`);
+          return;
+      }
+
+      suppliers.push(newSupplier);
+      localStorage.setItem('suppliersDB', JSON.stringify(suppliers));
+      
+      alert('Supplier berhasil ditambahkan!');
+      window.location.href = 'supplier.html'; // Kembali ke halaman daftar supplier
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Data Penjualan - Toko Amalia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="penjualan.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    .monthly-sales-section {
+        margin-bottom: 2.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px dashed #eee;
+    }
+    .monthly-sales-section:last-child {
+        border-bottom: none;
+        margin-bottom: 1rem;
+    }
+    .month-header {
+        font-size: 1.6rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #6e8efb;
+        display: inline-block;
+    }
+    .total-bulanan {
+        font-size: 1.1rem;
+        font-weight: bold;
+        text-align: right;
+        margin-top: 1rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <header id="mainHeader"> <div class="logo">
+      <img src="avatar.png" alt="Logo">
+      <span>Toko Amalia</span>
+    </div>
+    <nav>
+      <a href="dashboard.html" id="navLinkDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="produk.html?kategori=semua" id="navLinkProduk"><i class="fas fa-box"></i> Produk</a>
+      <a href="transaksi.html" id="navLinkTransaksi"><i class="fas fa-cash-register"></i> Transaksi</a>
+      <a href="penjualan.html" id="navLinkDataPenjualan"><i class="fas fa-file-invoice"></i> Data Penjualan</a>
+      <a href="supplier.html" id="navLinkSupplier"><i class="fas fa-truck-loading"></i> Data Supplier</a>
+      <a href="profil.html" id="navLinkProfil"><i class="fas fa-user"></i> Profil</a>
+      <a href="tambah-produk.html" id="navLinkTambahProduk" class="admin-only-nav"><i class="fas fa-plus-circle"></i> Tambah Produk</a>
+    </nav>
+     <div class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </div>
+  </header>
+
+  <main id="main-content">
+    </main>
+
+  <div id="detail-modal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()" style="position: absolute; top: 15px; right: 25px; font-size:1.8rem; cursor:pointer; color: #777;">&times;</span>
+        <h3>Detail Transaksi</h3>
+        <div class="transaction-info">
+            <p><strong>ID Transaksi:</strong> <span id="modal-id"></span></p>
+            <p><strong>Tanggal:</strong> <span id="modal-tanggal"></span></p>
+            <p><strong>Kasir:</strong> <span id="modal-kasir"></span></p>
+            <p><strong>Metode Pembayaran:</strong> <span id="modal-metode"></span></p>
+        </div>
+        <h4>Item yang Dibeli:</h4>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Nama Produk</th>
+                    <th>Harga</th>
+                    <th>Jumlah</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="modal-items-list"></tbody>
+        </table>
+        <p style="margin-top: 1rem;"><strong>Total Keseluruhan:</strong> <span id="modal-total-keseluruhan" style="font-weight:bold;"></span></p>
+        <button onclick="closeModal()" class="close-btn" style="background:#6c757d; color:white; border:none; padding: 10px 20px; border-radius:5px; display:block; margin-left:auto; margin-right:auto; margin-top:20px; cursor:pointer;">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    // Salin fungsi setNavigationForRole, setupFocusedNavigation, dan logout di sini
+    function setNavigationForRole(role) {
+        const navLinks = {
+            Produk: document.getElementById('navLinkProduk'),
+            Transaksi: document.getElementById('navLinkTransaksi'),
+            DataPenjualan: document.getElementById('navLinkDataPenjualan'),
+            Supplier: document.getElementById('navLinkSupplier'),
+            Profil: document.getElementById('navLinkProfil'),
+            TambahProduk: document.getElementById('navLinkTambahProduk'),
+            Dashboard: document.getElementById('navLinkDashboard')
+        };
+
+        // Default display (yang bisa dilihat semua role terlogin)
+        if (navLinks.Dashboard) navLinks.Dashboard.style.display = 'flex';
+        if (navLinks.Produk) navLinks.Produk.style.display = 'flex';
+        if (navLinks.Profil) navLinks.Profil.style.display = 'flex';
+        
+        // Sembunyikan yang spesifik role terlebih dahulu
+        // Transaksi, DataPenjualan, Supplier, TambahProduk defaultnya none
+        // kecuali jika role mengizinkan.
+        if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'none';
+        if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'none';
+        if (navLinks.Supplier) navLinks.Supplier.style.display = 'none';
+        if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'none';
+
+        // Tampilkan berdasarkan role
+        if (role === "admin") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex'; // Admin bisa lihat transaksi
+            if (navLinks.DataPenjualan) navLinks.DataPenjualan.style.display = 'flex';
+            if (navLinks.Supplier) navLinks.Supplier.style.display = 'flex';
+            if (navLinks.TambahProduk) navLinks.TambahProduk.style.display = 'flex';
+        } else if (role === "kasir") {
+            if (navLinks.Transaksi) navLinks.Transaksi.style.display = 'flex';
+        }
+    }
+
+    function setupFocusedNavigation(activeLinkId) {
+        const header = document.getElementById('mainHeader');
+        if (!header) return;
+        const navElement = header.querySelector('nav');
+        if (!navElement) return;
+        const navLinks = navElement.querySelectorAll('a');
+        navLinks.forEach(link => {
+            if (link.id === activeLinkId) {
+                // Hanya tampilkan link aktif jika TIDAK disembunyikan oleh setNavigationForRole
+                if (link.style.display !== 'none') {
+                    link.style.display = 'flex'; 
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active'); // Pastikan tidak ada class active jika disembunyikan role
+                }
+            } else {
+                // Sembunyikan semua link lain yang tidak aktif
+                link.style.display = 'none';
+                link.classList.remove('active');
+            }
+        });
+    }
+    
+    function logout() { //
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('username');
+      localStorage.removeItem('role');
+      window.location.href = 'index.html';
+    }
+
+    // --- Sisa kode JavaScript dari penjualan.html ---
+    document.addEventListener('DOMContentLoaded', function() {
+      const isLoggedIn = localStorage.getItem('isLoggedIn');
+      const role = localStorage.getItem('role');
+
+      if (!isLoggedIn || isLoggedIn !== 'true') {
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      // 1. Atur visibilitas link berdasarkan role
+      setNavigationForRole(role); 
+      // 2. Atur fokus pada link Data Penjualan
+      setupFocusedNavigation('navLinkDataPenjualan');
+
+      if (role !== 'admin') {
+        document.getElementById('main-content').innerHTML = 
+          `<div class="access-denied" style="text-align:center; padding: 40px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 2rem auto; max-width: 500px;">
+            <i class="fas fa-user-lock" style="font-size: 4rem; color: #dc3545; margin-bottom: 1.5rem; display: block;"></i>
+            <h2 style="color: #333; font-size:1.8rem;">Akses Ditolak</h2>
+            <p style="color: #555; margin-bottom: 2rem; font-size:1.1rem;">Halaman ini hanya dapat diakses oleh Admin.</p>
+            <button onclick="window.location.href='dashboard.html'" class="back-button" style="background: #007bff; color:white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: background-color 0.2s ease;">
+                <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+            </button>
+          </div>`;
+        return; 
+      }
+      
+      document.getElementById('main-content').innerHTML = `
+        <div class="header-section">
+          <h2>Data Penjualan Bulanan</h2>
+           <button onclick="window.location.href='dashboard.html'" class="back-button">
+             <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+           </button>
+        </div>
+        <div id="sales-data-container">
+            </div>
+      `;
+      loadMonthlyTransactions();
+    });
+
+    function parseLocalDate(dateString) { //
+        const parts = dateString.match(/(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2})/);
+        if (parts) {
+            return new Date(parts[3], parts[2] - 1, parts[1], parts[4], parts[5]);
+        }
+        return new Date(dateString); 
+    }
+
+
+    function loadMonthlyTransactions() { //
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      const salesContainer = document.getElementById('sales-data-container');
+      salesContainer.innerHTML = '';
+
+      if (transactions.length === 0) {
+        salesContainer.innerHTML = '<div class="no-transactions" style="padding: 2rem; text-align:center; color:#777;">Belum ada data penjualan.</div>';
+        return;
+      }
+
+      transactions.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
+
+      const monthlySales = {};
+      transactions.forEach(trx => {
+        const dateObj = parseLocalDate(trx.date);
+        const monthYear = `${dateObj.toLocaleString('id-ID', { month: 'long' })} ${dateObj.getFullYear()}`;
+        
+        if (!monthlySales[monthYear]) {
+          monthlySales[monthYear] = {
+            transactions: [],
+            totalSales: 0
+          };
+        }
+        monthlySales[monthYear].transactions.push(trx);
+        monthlySales[monthYear].totalSales += trx.total;
+      });
+
+      const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
+          const dateA = new Date(a.split(" ")[1], getMonthIndex(a.split(" ")[0]));
+          const dateB = new Date(b.split(" ")[1], getMonthIndex(b.split(" ")[0]));
+          return dateB - dateA; 
+      });
+
+      for (const monthYear of sortedMonths) {
+        const monthData = monthlySales[monthYear];
+        const monthSection = document.createElement('div');
+        monthSection.className = 'monthly-sales-section';
+
+        const monthHeader = document.createElement('h3');
+        monthHeader.className = 'month-header';
+        monthHeader.textContent = monthYear;
+        monthSection.appendChild(monthHeader);
+
+        const table = document.createElement('table');
+        table.className = 'transaction-table'; 
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>ID Transaksi</th>
+              <th>Tanggal Lengkap</th>
+              <th>Kasir</th>
+              <th>Jumlah Item</th>
+              <th>Total Transaksi</th>
+              <th>Metode</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        
+        monthData.transactions.sort((a, b) => parseLocalDate(b.date) - parseLocalDate(a.date));
+
+        monthData.transactions.forEach(trx => {
+          const totalItems = trx.items.reduce((sum, item) => sum + item.quantity, 0);
+          const row = tbody.insertRow();
+          row.innerHTML = `
+            <td>${trx.id}</td>
+            <td>${trx.date}</td>
+            <td>${trx.kasir || 'N/A'}</td>
+            <td>${totalItems}</td>
+            <td>Rp${trx.total.toLocaleString('id-ID')}</td>
+            <td>${trx.paymentMethod}</td>
+            <td>
+              <button class="detail-btn" onclick="showDetail('${trx.id}')">
+                <i class="fas fa-eye"></i> Detail
+              </button>
+            </td>
+          `;
+        });
+        monthSection.appendChild(table);
+
+        const totalBulananDiv = document.createElement('div');
+        totalBulananDiv.className = 'total-bulanan';
+        totalBulananDiv.innerHTML = `Total Penjualan ${monthYear}: <strong>Rp${monthData.totalSales.toLocaleString('id-ID')}</strong>`;
+        monthSection.appendChild(totalBulananDiv);
+
+        salesContainer.appendChild(monthSection);
+      }
+    }
+    
+    function getMonthIndex(monthName) { //
+        const months = ["januari", "februari", "maret", "april", "mei", "juni", 
+                        "juli", "agustus", "september", "oktober", "november", "desember"];
+        return months.indexOf(monthName.toLowerCase());
+    }
+
+
+    function showDetail(transactionId) { //
+      const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+      const trx = transactions.find(t => t.id === transactionId);
+
+      if (!trx) {
+        alert('Transaksi tidak ditemukan!');
+        return;
+      }
+
+      document.getElementById('modal-id').textContent = trx.id;
+      document.getElementById('modal-tanggal').textContent = trx.date;
+      document.getElementById('modal-kasir').textContent = trx.kasir || 'N/A';
+      document.getElementById('modal-metode').textContent = trx.paymentMethod;
+      document.getElementById('modal-total-keseluruhan').textContent = `Rp${trx.total.toLocaleString('id-ID')}`;
+
+      const itemsList = document.getElementById('modal-items-list');
+      itemsList.innerHTML = ''; 
+
+      trx.items.forEach(item => {
+        const row = itemsList.insertRow();
+        row.innerHTML = `
+          <td>${item.nama}</td>
+          <td>Rp${item.harga.toLocaleString('id-ID')}</td>
+          <td>${item.quantity}</td>
+          <td>Rp${(item.harga * item.quantity).toLocaleString('id-ID')}</td>
+        `;
+      });
+
+      document.getElementById('detail-modal').style.display = 'block';
+    }
+
+    function closeModal() { //
+      document.getElementById('detail-modal').style.display = 'none';
+    }
+    
+    window.onclick = function(event) { //
+        const modal = document.getElementById('detail-modal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+  </script>
+</body>
+</html>

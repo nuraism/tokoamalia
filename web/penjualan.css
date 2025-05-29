@@ -1,0 +1,154 @@
+/* Style untuk tabel transaksi */
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.transaction-table th, 
+.transaction-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.transaction-table th {
+  background-color: #6e8efb;
+  color: white;
+  font-weight: 500;
+}
+
+.transaction-table tr:hover {
+  background-color: #f8f9ff;
+}
+
+.no-transactions {
+  text-align: center;
+  padding: 20px;
+  color: #777;
+}
+
+/* Style untuk tombol detail */
+.detail-btn {
+  background-color: #6e8efb;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.detail-btn:hover {
+  background-color: #5a7df4;
+  transform: translateY(-2px);
+}
+
+/* Style untuk modal */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 25px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 700px;
+  box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.transaction-info {
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.transaction-info p {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.items-table th, 
+.items-table td {
+  padding: 10px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.items-table th {
+  background-color: #f5f7ff;
+  color: #444;
+}
+
+.close-btn {
+  background-color: #6e8efb;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  transition: all 0.3s;
+}
+
+.close-btn:hover {
+  background-color: #5a7df4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .transaction-table {
+    font-size: 14px;
+  }
+  
+  .transaction-table th, 
+  .transaction-table td {
+    padding: 8px 10px;
+  }
+  
+  .modal-content {
+    width: 90%;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .transaction-container {
+    overflow-x: auto;
+  }
+  
+  .transaction-table {
+    min-width: 600px;
+  }
+  
+  .modal-content {
+    width: 95%;
+  }
+}
